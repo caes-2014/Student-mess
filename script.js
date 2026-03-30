@@ -3,7 +3,7 @@ let isAdminLoggedIn = false;
 const ADMIN_PASSWORD = 'caes123'; // Change this password
 let studentsData = [];
 let currentDate = new Date().toISOString().split('T')[0];
-let githubToken = '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'; // Set your GitHub token here
+let githubToken = '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'; // Set your GitHub token here
 let repoOwner = 'caes-2014'; // Your GitHub username
 let repoName = 'Student-mess'; // Your repo name
 
@@ -287,7 +287,7 @@ async function getFileSHA() {
 
 // Enhanced save function with GitHub integration
 async function saveAttendanceDataWithGitHub() {
-    if (!isAdminLoggedIn || !githubToken || githubToken === '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') {
+    if (!isAdminLoggedIn || !githubToken || githubToken === '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') {
         alert('Please configure GitHub token in script.js first!');
         return;
     }
@@ -326,7 +326,7 @@ async function saveAttendanceDataWithGitHub() {
 // Enhanced load function with GitHub + fallback
 async function loadAttendanceDataEnhanced() {
     try {
-        if (githubToken && githubToken !== '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') {
+        if (githubToken && githubToken !== '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') {
             const data = await loadFromGitHub();
             if (data && data.date === currentDate) {
                 studentsData = data.students || [];
