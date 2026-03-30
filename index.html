@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CAES Students Mess - Home</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <div class="logo">
+                <div class="logo-icon">🍽️</div>
+                <h1>CAES STUDENTS MESS</h1>
+            </div>
+            <nav class="nav">
+                <a href="index.html" class="nav-link active">HOME</a>
+                <a href="attendance.html" class="nav-link">TODAY ATTENDANCE</a>
+                <a href="#" class="nav-link">MONTH ATTENDANCE</a>
+                <a href="#" class="nav-link">FEEDBACK</a>
+                <a href="#" class="nav-link login-btn">LOGIN</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Top Images Section -->
+    <section class="top-images">
+        <div class="container">
+            <h2 class="section-title">Gallery</h2>
+            <div class="image-cards">
+                <div class="image-card">
+                    <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&h=300&fit=crop" alt="Mess Facility 1">
+                </div>
+                <div class="image-card">
+                    <img src="https://images.unsplash.com/photo-1579586140626-0a78b4dfa8a6?w=400&h=300&fit=crop" alt="Mess Facility 2">
+                </div>
+                <div class="image-card">
+                    <img src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3133?w=400&h=300&fit=crop" alt="Mess Facility 3">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Food Menu Section -->
+    <section class="food-menu">
+        <div class="container">
+            <h2 class="section-title">Today's Food Menu</h2>
+            <div class="menu-banner">
+                <img src="https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=800&h=400&fit=crop" alt="Food Menu" id="menuImage">
+                <div class="upload-btn">
+                    <input type="file" id="menuUpload" accept="image/*">
+                    <label for="menuUpload">📤 Update Menu</label>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Staff Section -->
+    <section class="staff-section">
+        <div class="container">
+            <h2 class="section-title">Our Staff</h2>
+            <div class="staff-grid">
+                <div class="staff-card">
+                    <div class="staff-image">
+                        <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&h=300&fit=crop&crop=face" alt="Warden">
+                    </div>
+                    <h3>Dr. Rajesh Kumar</h3>
+                    <p class="designation">Warden</p>
+                </div>
+                <div class="staff-card">
+                    <div class="staff-image">
+                        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&h=300&fit=crop&crop=face" alt="Sub Warden">
+                    </div>
+                    <h3>Prof. Anita Sharma</h3>
+                    <p class="designation">Sub Warden</p>
+                </div>
+                <div class="staff-card">
+                    <div class="staff-image">
+                        <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=300&h=300&fit=crop&crop=face" alt="Caretaker">
+                    </div>
+                    <h3>Mrs. Geeta Devi</h3>
+                    <p class="designation">Caretaker</p>
+                </div>
+                <div class="staff-card">
+                    <div class="staff-image">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=face" alt="Maintainer">
+                    </div>
+                    <h3>Mr. Ramesh Singh</h3>
+                    <p class="designation">Maintainer</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Feedback Form -->
+    <section class="feedback-section">
+        <div class="container">
+            <h2 class="section-title">Feedback</h2>
+            <form class="feedback-form" id="feedbackForm">
+                <div class="form-group">
+                    <input type="text" id="feedbackName" placeholder="Your Name" required>
+                </div>
+                <div class="form-group">
+                    <textarea id="feedbackMessage" placeholder="Your Message" rows="4" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Rating:</label>
+                    <div class="rating-stars">
+                        <span class="star" data-rating="1">★</span>
+                        <span class="star" data-rating="2">★</span>
+                        <span class="star" data-rating="3">★</span>
+                        <span class="star" data-rating="4">★</span>
+                        <span class="star" data-rating="5">★</span>
+                    </div>
+                    <input type="hidden" id="ratingValue" value="0">
+                </div>
+                <button type="submit" class="submit-btn">Submit Feedback</button>
+            </form>
+        </div>
+    </section>
+
+    <script src="script.js"></script>
+</body>
+</html>

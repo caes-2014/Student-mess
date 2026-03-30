@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CAES Students Mess - Today Attendance</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <div class="logo">
+                <div class="logo-icon">🍽️</div>
+                <h1>CAES STUDENTS MESS</h1>
+            </div>
+            <nav class="nav">
+                <a href="index.html" class="nav-link">HOME</a>
+                <a href="attendance.html" class="nav-link active">TODAY ATTENDANCE</a>
+                <a href="#" class="nav-link">MONTH ATTENDANCE</a>
+                <a href="#" class="nav-link">FEEDBACK</a>
+                <a href="#" class="nav-link login-btn">LOGIN</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Date Display -->
+        <div class="attendance-header">
+            <h1>Today's Attendance - <span id="currentDate"></span></h1>
+            <div class="live-counts">
+                <div class="count-card">
+                    <span class="count-label">Tiffin</span>
+                    <span class="count-value" id="tiffinCount">0</span>
+                </div>
+                <div class="count-card">
+                    <span class="count-label">Lunch</span>
+                    <span class="count-value" id="lunchCount">0</span>
+                </div>
+                <div class="count-card">
+                    <span class="count-label">Dinner</span>
+                    <span class="count-value" id="dinnerCount">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Login Modal -->
+        <div class="login-modal" id="loginModal">
+            <div class="modal-content">
+                <h3>Admin Login Required</h3>
+                <input type="password" id="adminPassword" placeholder="Enter Password">
+                <div class="modal-buttons">
+                    <button id="loginBtn" class="submit-btn">Login</button>
+                    <button id="closeModal" class="cancel-btn">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance Table -->
+        <div class="table-container" id="attendanceTableContainer">
+            <table class="attendance-table" id="attendanceTable">
+                <thead>
+                    <tr>
+                        <th>Student Name</th>
+                        <th>ID No</th>
+                        <th>Tiffin</th>
+                        <th>Lunch</th>
+                        <th>Dinner</th>
+                    </tr>
+                </thead>
+                <tbody id="attendanceBody">
+                    <!-- Dynamic content -->
+                </tbody>
+            </table>
+            <div class="table-actions">
+                <button id="saveBtn" class="save-btn" disabled>💾 SAVE ATTENDANCE</button>
+                <button id="exportBtn" class="export-btn">📊 EXPORT CSV</button>
+                <button id="addStudentBtn" class="add-btn">➕ ADD STUDENT</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
