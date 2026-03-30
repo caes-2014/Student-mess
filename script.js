@@ -285,59 +285,98 @@ async function getFileSHA() {
     return data.sha;
 }
 
-// Enhanced save function with GitHub integration
+// FIXED: Enhanced save function with GitHub integration
 async function saveAttendanceDataWithGitHub() {
-    if (!isAdminLoggedIn || !githubToken || githubToken === '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') {
-        alert('Please configure GitHub token in script.js first!');
+    if (!isAdminLoggedIn) {
+        alert('Please login as admin first!');
+        return;
+    }
+
+    // Check if GitHub config is properly set (not default placeholder)
+    if (!githubToken || githubToken.length < 20) {
+        console.log('GitHub token not configured, using localStorage');
+        localStorage.setItem(`attendance_${currentDate}`, JSON.stringify(studentsData));
+        showSaveFeedback('💾 Saved Locally');
         return;
     }
 
     try {
+        // First get current file SHA
+        let sha = null;
+        try {
+            sha = await getFileSHA();
+        } catch (e) {
+            console.log('No existing file, creating new');
+        }
+
         const data = {
             date: currentDate,
             totalStudents: studentsData.length,
             tiffinCount: studentsData.filter(s => s.tiffin).length,
             lunchCount: studentsData.filter(s => s.lunch).length,
             dinnerCount: studentsData.filter(s => s.dinner).length,
+            lastUpdated: new Date().toISOString(),
             students: studentsData
         };
 
-        await saveToGitHub(data);
+        const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
+        
+        const response = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/contents/attendance.json`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `token ${githubToken}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/vnd.github.v3+json'
+            },
+            body: JSON.stringify({
+                message: `Update attendance for ${currentDate}`,
+                content: content,
+                sha: sha
+            })
+        });
 
-        // UI feedback
-        const saveBtn = document.getElementById('saveBtn');
-        saveBtn.disabled = true;
-        saveBtn.textContent = '✅ SAVED TO GITHUB!';
-        saveBtn.style.background = 'linear-gradient(45deg, #4caf50, #81c784)';
-
-        setTimeout(() => {
-            saveBtn.disabled = false;
-            saveBtn.textContent = '💾 SAVE ATTENDANCE';
-            saveBtn.style.background = '';
-        }, 3000);
+        if (response.ok) {
+            showSaveFeedback('✅ SAVED TO GITHUB!');
+            console.log('✅ GitHub save successful');
+        } else {
+            throw new Error(`GitHub API error: ${response.status}`);
+        }
 
     } catch (error) {
         console.error('GitHub save error:', error);
-        alert('Error saving to GitHub. Using local storage as backup.');
+        // Fallback to localStorage
         localStorage.setItem(`attendance_${currentDate}`, JSON.stringify(studentsData));
+        showSaveFeedback('💾 Saved Locally (GitHub failed)');
     }
 }
 
-// Enhanced load function with GitHub + fallback
+// FIXED: Enhanced load function with GitHub + fallback
 async function loadAttendanceDataEnhanced() {
     try {
-        if (githubToken && githubToken !== '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') {
-            const data = await loadFromGitHub();
-            if (data && data.date === currentDate) {
-                studentsData = data.students || [];
-            } else {
-                studentsData = getSampleStudents();
+        // Try GitHub first
+        if (githubToken && githubToken.length > 20) {
+            try {
+                const data = await loadFromGitHub();
+                if (data && data.date === currentDate) {
+                    studentsData = data.students || getSampleStudents();
+                    console.log('✅ Loaded from GitHub');
+                    return;
+                }
+            } catch (githubError) {
+                console.log('GitHub load failed, trying localStorage');
             }
-        } else {
-            // Fallback to localStorage
-            const saved = localStorage.getItem(`attendance_${currentDate}`);
-            studentsData = saved ? JSON.parse(saved) : getSampleStudents();
         }
+
+        // Fallback to localStorage
+        const saved = localStorage.getItem(`attendance_${currentDate}`);
+        if (saved) {
+            studentsData = JSON.parse(saved);
+            console.log('✅ Loaded from localStorage');
+        } else {
+            studentsData = getSampleStudents();
+            console.log('📝 Loaded sample data');
+        }
+
     } catch (error) {
         console.error('Load error:', error);
         studentsData = getSampleStudents();
@@ -347,6 +386,56 @@ async function loadAttendanceDataEnhanced() {
     updateCounts();
 }
 
+// FIXED: Helper function for save feedback
+function showSaveFeedback(message) {
+    const saveBtn = document.getElementById('saveBtn');
+    const originalText = saveBtn.textContent;
+    const originalBg = saveBtn.style.background;
+    
+    saveBtn.disabled = true;
+    saveBtn.textContent = message;
+    saveBtn.style.background = 'linear-gradient(45deg, #4caf50, #81c784)';
+    
+    setTimeout(() => {
+        saveBtn.disabled = false;
+        saveBtn.textContent = '💾 SAVE ATTENDANCE';
+        saveBtn.style.background = '';
+    }, 3000);
+}
+
+// FIXED: Improved GitHub load function
+async function loadFromGitHub() {
+    const response = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/contents/attendance.json?ref=main`, {
+        headers: {
+            'Authorization': `token ${githubToken}`,
+            'Accept': 'application/vnd.github.v3+json'
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const fileData = await response.json();
+    return JSON.parse(decodeURIComponent(escape(atob(fileData.content))));
+}
+
+// FIXED: Improved GitHub SHA function
+async function getFileSHA() {
+    const response = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/contents/attendance.json?ref=main`, {
+        headers: {
+            'Authorization': `token ${githubToken}`,
+            'Accept': 'application/vnd.github.v3+json'
+        }
+    });
+
+    if (!response.ok) {
+        return null; // No file exists yet
+    }
+
+    const fileData = await response.json();
+    return fileData.sha;
+}
 // Local storage backup functions
 function saveToLocalStorage() {
     localStorage.setItem(`attendance_${currentDate}`, JSON.stringify(studentsData));
