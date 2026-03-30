@@ -3,9 +3,9 @@ let isAdminLoggedIn = false;
 const ADMIN_PASSWORD = 'caes123'; // Change this password
 let studentsData = [];
 let currentDate = new Date().toISOString().split('T')[0];
-let githubToken = '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'; // Set your GitHub token here
-let repoOwner = 'caes-2014'; // Your GitHub username
-let repoName = 'Student-mess'; // Your repo name
+let githubToken = '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';
+let repoOwner = 'caes-2014';
+let repoName = 'Student-mess';
 
 // Initialize app
 document.addEventListener('DOMContentLoaded', function () {
@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 function initPage() {
     const currentPage = window.location.pathname.includes('attendance') ? 'attendance' : 'home';
-
+    
     if (currentPage === 'attendance') {
         initAttendancePage();
     } else {
@@ -38,40 +38,44 @@ function initHomePage() {
 
 function initAttendancePage() {
     document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-IN');
-
+    
     // Check admin login
     checkAdminLogin();
-
-    // Load attendance data
-    loadAttendanceData();
-
+    
     // Event listeners
-    document.getElementById('loginBtn')?.addEventListener('click', handleAdminLogin);
-    document.getElementById('closeModal')?.addEventListener('click', closeLoginModal);
-    document.getElementById('saveBtn')?.addEventListener('click', saveAttendanceData);
-    document.getElementById('exportBtn')?.addEventListener('click', exportToCSV);
-    document.getElementById('addStudentBtn')?.addEventListener('click', addStudent);
+    const loginBtn = document.getElementById('loginBtn');
+    const closeModal = document.getElementById('closeModal');
+    const saveBtn = document.getElementById('saveBtn');
+    const exportBtn = document.getElementById('exportBtn');
+    const addStudentBtn = document.getElementById('addStudentBtn');
+    
+    if (loginBtn) loginBtn.addEventListener('click', handleAdminLogin);
+    if (closeModal) closeModal.addEventListener('click', closeLoginModal);
+    if (saveBtn) saveBtn.addEventListener('click', saveAttendanceData);
+    if (exportBtn) exportBtn.addEventListener('click', exportToCSV);
+    if (addStudentBtn) addStudentBtn.addEventListener('click', addStudent);
 }
 
 function checkAdminLogin() {
     const tableContainer = document.getElementById('attendanceTableContainer');
     const loginModal = document.getElementById('loginModal');
-
+    
     if (!isAdminLoggedIn) {
-        loginModal.style.display = 'block';
-        tableContainer.style.display = 'none';
+        if (loginModal) loginModal.style.display = 'block';
+        if (tableContainer) tableContainer.style.display = 'none';
     }
 }
 
 function handleAdminLogin() {
-    const password = document.getElementById('adminPassword').value;
+    const password = document.getElementById('adminPassword')?.value;
     if (password === ADMIN_PASSWORD) {
         isAdminLoggedIn = true;
         document.getElementById('loginModal').style.display = 'none';
         document.getElementById('attendanceTableContainer').style.display = 'block';
         loadAttendanceData();
+        console.log('✅ Admin logged in');
     } else {
-        alert('Incorrect password!');
+        alert('❌ Incorrect password!');
     }
 }
 
@@ -80,16 +84,7 @@ function closeLoginModal() {
 }
 
 async function loadAttendanceData() {
-    try {
-        // For demo, load sample data. Replace with GitHub API call
-        studentsData = getSampleStudents();
-        renderAttendanceTable();
-        updateCounts();
-    } catch (error) {
-        console.error('Error loading data:', error);
-        studentsData = getSampleStudents();
-        renderAttendanceTable();
-    }
+    await loadAttendanceDataEnhanced();
 }
 
 function getSampleStudents() {
@@ -105,30 +100,33 @@ function getSampleStudents() {
 
 function renderAttendanceTable() {
     const tbody = document.getElementById('attendanceBody');
+    if (!tbody) return;
+    
     tbody.innerHTML = '';
 
     studentsData.forEach((student, index) => {
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td>${student.name}</td>
-            <td>${student.id}</td>
-            <td><input type="checkbox" ${student.tiffin ? 'checked' : ''} onchange="toggleAttendance(${index}, 'tiffin')" ${!isAdminLoggedIn ? 'disabled' : ''}></td>
-            <td><input type="checkbox" ${student.lunch ? 'checked' : ''} onchange="toggleAttendance(${index}, 'lunch')" ${!isAdminLoggedIn ? 'disabled' : ''}></td>
-            <td><input type="checkbox" ${student.dinner ? 'checked' : ''} onchange="toggleAttendance(${index}, 'dinner')" ${!isAdminLoggedIn ? 'disabled' : ''}></td>
+            <td><strong>${student.name}</strong></td>
+            <td><code>${student.id}</code></td>
+            <td><input type="checkbox" ${student.tiffin ? 'checked' : ''} onchange="toggleAttendance(${index}, 'tiffin')"></td>
+            <td><input type="checkbox" ${student.lunch ? 'checked' : ''} onchange="toggleAttendance(${index}, 'lunch')"></td>
+            <td><input type="checkbox" ${student.dinner ? 'checked' : ''} onchange="toggleAttendance(${index}, 'dinner')"></td>
         `;
         tbody.appendChild(row);
     });
 
     const saveBtn = document.getElementById('saveBtn');
-    saveBtn.disabled = !isAdminLoggedIn;
+    if (saveBtn) saveBtn.disabled = !isAdminLoggedIn;
 }
 
 function toggleAttendance(index, meal) {
     if (!isAdminLoggedIn) return;
-
+    
     studentsData[index][meal] = !studentsData[index][meal];
     updateCounts();
     document.getElementById('saveBtn').disabled = false;
+    setupAutoSave();
 }
 
 function updateCounts() {
@@ -136,60 +134,48 @@ function updateCounts() {
     const lunchCount = studentsData.filter(s => s.lunch).length;
     const dinnerCount = studentsData.filter(s => s.dinner).length;
 
-    document.getElementById('tiffinCount').textContent = tiffinCount;
-    document.getElementById('lunchCount').textContent = lunchCount;
-    document.getElementById('dinnerCount').textContent = dinnerCount;
+    const tiffinEl = document.getElementById('tiffinCount');
+    const lunchEl = document.getElementById('lunchCount');
+    const dinnerEl = document.getElementById('dinnerCount');
+    
+    if (tiffinEl) tiffinEl.textContent = tiffinCount;
+    if (lunchEl) lunchEl.textContent = lunchCount;
+    if (dinnerEl) dinnerEl.textContent = dinnerCount;
 }
 
 async function saveAttendanceData() {
-    if (!isAdminLoggedIn) return;
-
-    try {
-        const data = {
-            date: currentDate,
-            students: studentsData
-        };
-
-        // TODO: Save to GitHub API
-        console.log('Saving data:', data);
-
-        // Simulate save
-        document.getElementById('saveBtn').disabled = true;
-        document.getElementById('saveBtn').textContent = '✅ SAVED!';
-        setTimeout(() => {
-            document.getElementById('saveBtn').textContent = '💾 SAVE ATTENDANCE';
-        }, 2000);
-    } catch (error) {
-        console.error('Error saving data:', error);
-        alert('Error saving data. Check console for details.');
+    if (!isAdminLoggedIn) {
+        alert('Please login as admin first!');
+        return;
     }
+    
+    await saveAttendanceDataWithGitHub();
 }
 
 function exportToCSV() {
-    const headers = ['Name', 'ID', 'Tiffin', 'Lunch', 'Dinner'];
+    const headers = ['Name', 'ID', 'Tiffin', 'Lunch', 'Dinner', 'Date'];
     const csvContent = [
         headers.join(','),
-        ...studentsData.map(student =>
-            `${student.name},${student.id},${student.tiffin},${student.lunch},${student.dinner}`
+        ...studentsData.map(student => 
+            `"${student.name}","${student.id}",${student.tiffin},${student.lunch},${student.dinner},"${currentDate}"`
         )
     ].join('\n');
 
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `attendance_${currentDate}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `CAES_Attendance_${currentDate}.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
 }
 
 function addStudent() {
     if (!isAdminLoggedIn) return;
-
+    
     const name = prompt('Enter student name:');
-    const id = prompt('Enter student ID:');
-
-    if (name && id) {
+    const id = prompt('Enter student ID (e.g., CAES007):');
+    
+    if (name && id && !studentsData.find(s => s.id === id)) {
         studentsData.push({
             name: name.trim(),
             id: id.trim(),
@@ -199,6 +185,9 @@ function addStudent() {
         });
         renderAttendanceTable();
         updateCounts();
+        console.log(`✅ Added student: ${name} (${id})`);
+    } else if (studentsData.find(s => s.id === id)) {
+        alert('❌ Student ID already exists!');
     }
 }
 
@@ -209,6 +198,7 @@ function handleMenuUpload(e) {
         const reader = new FileReader();
         reader.onload = function (e) {
             document.getElementById('menuImage').src = e.target.result;
+            console.log('✅ Menu image updated');
         };
         reader.readAsDataURL(file);
     }
@@ -220,190 +210,73 @@ function setupFeedback() {
 
     stars.forEach(star => {
         star.addEventListener('click', function () {
-            const rating = this.dataset.rating;
+            const rating = parseInt(this.dataset.rating);
             ratingValue.value = rating;
-
+            
             stars.forEach((s, index) => {
                 s.classList.toggle('active', index < rating);
             });
         });
     });
 
-    document.getElementById('feedbackForm').addEventListener('submit', function (e) {
-        e.preventDefault();
+    const feedbackForm = document.getElementById('feedbackForm');
+    if (feedbackForm) {
+        feedbackForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            
+            const feedback = {
+                name: document.getElementById('feedbackName').value,
+                message: document.getElementById('feedbackMessage').value,
+                rating: document.getElementById('ratingValue').value,
+                date: new Date().toLocaleDateString('en-IN')
+            };
 
-        const feedback = {
-            name: document.getElementById('feedbackName').value,
-            message: document.getElementById('feedbackMessage').value,
-            rating: document.getElementById('ratingValue').value,
-            date: new Date().toLocaleDateString()
-        };
-
-        console.log('Feedback submitted:', feedback);
-        alert('Thank you for your feedback!');
-        this.reset();
-        document.querySelectorAll('.star').forEach(s => s.classList.remove('active'));
-    });
+            // Store in localStorage
+            const feedbacks = JSON.parse(localStorage.getItem('caes_feedback') || '[]');
+            feedbacks.push(feedback);
+            localStorage.setItem('caes_feedback', JSON.stringify(feedbacks));
+            
+            console.log('📝 Feedback saved:', feedback);
+            alert('✅ Thank you for your feedback!');
+            this.reset();
+            document.querySelectorAll('.star').forEach(s => s.classList.remove('active'));
+        });
+    }
 }
 
-// GitHub API Functions (Uncomment and configure for production)
+// 🔥 GITHUB API FUNCTIONS (FULLY WORKING)
 async function saveToGitHub(data) {
-    const content = btoa(JSON.stringify(data, null, 2)); // Base64 encode
+    let sha = null;
+    try {
+        sha = await getFileSHA();
+    } catch (e) {
+        console.log('📄 No existing attendance.json, creating new');
+    }
+
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
+    
     const response = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/contents/attendance.json`, {
         method: 'PUT',
         headers: {
             'Authorization': `token ${githubToken}`,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Accept': 'application/vnd.github.v3+json'
         },
         body: JSON.stringify({
-            message: `Update attendance for ${currentDate}`,
+            message: `🤖 Update CAES attendance: ${currentDate} (${data.totalStudents} students)`,
             content: content,
-            sha: await getFileSHA() // Get current file SHA for updates
+            sha: sha
         })
     });
 
-    return response.json();
-}
-
-async function loadFromGitHub() {
-    const response = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/contents/attendance.json?ref=main`, {
-        headers: {
-            'Authorization': `token ${githubToken}`
-        }
-    });
-    const data = await response.json();
-    return JSON.parse(atob(data.content));
-}
-
-async function getFileSHA() {
-    const response = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/contents/attendance.json?ref=main`, {
-        headers: {
-            'Authorization': `token ${githubToken}`
-        }
-    });
-    const data = await response.json();
-    return data.sha;
-}
-
-// FIXED: Enhanced save function with GitHub integration
-async function saveAttendanceDataWithGitHub() {
-    if (!isAdminLoggedIn) {
-        alert('Please login as admin first!');
-        return;
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`GitHub Error ${response.status}: ${errorData.message}`);
     }
-
-    // Check if GitHub config is properly set (not default placeholder)
-    if (!githubToken || githubToken.length < 20) {
-        console.log('GitHub token not configured, using localStorage');
-        localStorage.setItem(`attendance_${currentDate}`, JSON.stringify(studentsData));
-        showSaveFeedback('💾 Saved Locally');
-        return;
-    }
-
-    try {
-        // First get current file SHA
-        let sha = null;
-        try {
-            sha = await getFileSHA();
-        } catch (e) {
-            console.log('No existing file, creating new');
-        }
-
-        const data = {
-            date: currentDate,
-            totalStudents: studentsData.length,
-            tiffinCount: studentsData.filter(s => s.tiffin).length,
-            lunchCount: studentsData.filter(s => s.lunch).length,
-            dinnerCount: studentsData.filter(s => s.dinner).length,
-            lastUpdated: new Date().toISOString(),
-            students: studentsData
-        };
-
-        const content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
-        
-        const response = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/contents/attendance.json`, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `token ${githubToken}`,
-                'Content-Type': 'application/json',
-                'Accept': 'application/vnd.github.v3+json'
-            },
-            body: JSON.stringify({
-                message: `Update attendance for ${currentDate}`,
-                content: content,
-                sha: sha
-            })
-        });
-
-        if (response.ok) {
-            showSaveFeedback('✅ SAVED TO GITHUB!');
-            console.log('✅ GitHub save successful');
-        } else {
-            throw new Error(`GitHub API error: ${response.status}`);
-        }
-
-    } catch (error) {
-        console.error('GitHub save error:', error);
-        // Fallback to localStorage
-        localStorage.setItem(`attendance_${currentDate}`, JSON.stringify(studentsData));
-        showSaveFeedback('💾 Saved Locally (GitHub failed)');
-    }
-}
-
-// FIXED: Enhanced load function with GitHub + fallback
-async function loadAttendanceDataEnhanced() {
-    try {
-        // Try GitHub first
-        if (githubToken && githubToken.length > 20) {
-            try {
-                const data = await loadFromGitHub();
-                if (data && data.date === currentDate) {
-                    studentsData = data.students || getSampleStudents();
-                    console.log('✅ Loaded from GitHub');
-                    return;
-                }
-            } catch (githubError) {
-                console.log('GitHub load failed, trying localStorage');
-            }
-        }
-
-        // Fallback to localStorage
-        const saved = localStorage.getItem(`attendance_${currentDate}`);
-        if (saved) {
-            studentsData = JSON.parse(saved);
-            console.log('✅ Loaded from localStorage');
-        } else {
-            studentsData = getSampleStudents();
-            console.log('📝 Loaded sample data');
-        }
-
-    } catch (error) {
-        console.error('Load error:', error);
-        studentsData = getSampleStudents();
-    }
-
-    renderAttendanceTable();
-    updateCounts();
-}
-
-// FIXED: Helper function for save feedback
-function showSaveFeedback(message) {
-    const saveBtn = document.getElementById('saveBtn');
-    const originalText = saveBtn.textContent;
-    const originalBg = saveBtn.style.background;
     
-    saveBtn.disabled = true;
-    saveBtn.textContent = message;
-    saveBtn.style.background = 'linear-gradient(45deg, #4caf50, #81c784)';
-    
-    setTimeout(() => {
-        saveBtn.disabled = false;
-        saveBtn.textContent = '💾 SAVE ATTENDANCE';
-        saveBtn.style.background = '';
-    }, 3000);
+    return await response.json();
 }
 
-// FIXED: Improved GitHub load function
 async function loadFromGitHub() {
     const response = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/contents/attendance.json?ref=main`, {
         headers: {
@@ -413,14 +286,13 @@ async function loadFromGitHub() {
     });
 
     if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        throw new Error(`Load failed: ${response.status}`);
     }
 
     const fileData = await response.json();
     return JSON.parse(decodeURIComponent(escape(atob(fileData.content))));
 }
 
-// FIXED: Improved GitHub SHA function
 async function getFileSHA() {
     const response = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/contents/attendance.json?ref=main`, {
         headers: {
@@ -430,141 +302,118 @@ async function getFileSHA() {
     });
 
     if (!response.ok) {
-        return null; // No file exists yet
+        return null;
     }
 
     const fileData = await response.json();
     return fileData.sha;
 }
-// Local storage backup functions
-function saveToLocalStorage() {
+
+// 🚀 MAIN SAVE FUNCTION (GitHub + LocalStorage)
+async function saveAttendanceDataWithGitHub() {
+    const data = {
+        date: currentDate,
+        totalStudents: studentsData.length,
+        tiffinCount: studentsData.filter(s => s.tiffin).length,
+        lunchCount: studentsData.filter(s => s.lunch).length,
+        dinnerCount: studentsData.filter(s => s.dinner).length,
+        lastUpdated: new Date().toISOString(),
+        students: studentsData
+    };
+
+    // Always save locally first
     localStorage.setItem(`attendance_${currentDate}`, JSON.stringify(studentsData));
+
+    // Try GitHub sync
+    if (githubToken && githubToken.length > 20) {
+        try {
+            await saveToGitHub(data);
+            showSaveFeedback('✅ SAVED TO GITHUB CLOUD!');
+            console.log('☁️ Synced to GitHub:', data);
+        } catch (error) {
+            console.error('GitHub sync failed:', error);
+            showSaveFeedback('💾 Saved Locally');
+        }
+    } else {
+        showSaveFeedback('💾 Saved Locally');
+    }
 }
 
-function loadFromLocalStorage() {
-    const saved = localStorage.getItem(`attendance_${currentDate}`);
-    return saved ? JSON.parse(saved) : null;
+// Enhanced load with multiple fallbacks
+async function loadAttendanceDataEnhanced() {
+    try {
+        // 1. Try GitHub first
+        if (githubToken && githubToken.length > 20) {
+            try {
+                const githubData = await loadFromGitHub();
+                if (githubData.date === currentDate) {
+                    studentsData = githubData.students || [];
+                    console.log('✅ Loaded from GitHub');
+                    renderAttendanceTable();
+                    updateCounts();
+                    return;
+                }
+            } catch (e) {
+                console.log('GitHub unavailable, trying local...');
+            }
+        }
+
+        // 2. Try localStorage
+        const localData = localStorage.getItem(`attendance_${currentDate}`);
+        if (localData) {
+            studentsData = JSON.parse(localData);
+            console.log('✅ Loaded from localStorage');
+        } else {
+            // 3. Sample data
+            studentsData = getSampleStudents();
+            console.log('📝 Loaded sample data');
+        }
+
+        renderAttendanceTable();
+        updateCounts();
+
+    } catch (error) {
+        console.error('Load error:', error);
+        studentsData = getSampleStudents();
+        renderAttendanceTable();
+    }
 }
 
-// Auto-save every 30 seconds when changes made
+function showSaveFeedback(message) {
+    const saveBtn = document.getElementById('saveBtn');
+    if (!saveBtn) return;
+    
+    const originalText = '💾 SAVE ATTENDANCE';
+    saveBtn.disabled = true;
+    saveBtn.textContent = message;
+    saveBtn.style.background = 'linear-gradient(45deg, #4caf50, #81c784)';
+    
+    setTimeout(() => {
+        saveBtn.disabled = false;
+        saveBtn.textContent = originalText;
+        saveBtn.style.background = '';
+    }, 3000);
+}
+
+// Auto-save every 30 seconds
 let autoSaveTimer;
 function setupAutoSave() {
     clearInterval(autoSaveTimer);
     autoSaveTimer = setInterval(() => {
         if (isAdminLoggedIn && studentsData.length > 0) {
-            saveToLocalStorage();
+            localStorage.setItem(`attendance_${currentDate}`, JSON.stringify(studentsData));
         }
     }, 30000);
 }
 
-// Initialize PWA-like features
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-            .then(reg => console.log('SW registered'))
-            .catch(err => console.log('SW registration failed'));
-    });
-}
-
-// Smooth scrolling for anchor links
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-            target.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
-        }
-    });
-});
-
-// Mobile menu toggle (for future enhancement)
-function toggleMobileMenu() {
-    const nav = document.querySelector('.nav');
-    nav.classList.toggle('mobile-open');
-}
-
-// Export monthly report function
-function exportMonthlyReport() {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const now = new Date();
-    const monthReports = [];
-
-    for (let i = 0; i < 12; i++) {
-        const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        const monthKey = date.toISOString().split('T')[0].slice(0, 7);
-        const saved = localStorage.getItem(`attendance_${monthKey}`);
-        if (saved) {
-            const data = JSON.parse(saved);
-            monthReports.push({
-                month: months[date.getMonth()],
-                total: data.length,
-                tiffin: data.filter(s => s.tiffin).length,
-                lunch: data.filter(s => s.lunch).length,
-                dinner: data.filter(s => s.dinner).length
-            });
-        }
-    }
-
-    console.table(monthReports);
-    alert('Monthly report logged to console!');
-}
-
-// Performance optimization
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-// Update counts with debouncing
-window.updateCountsDebounced = debounce(updateCounts, 100);
-
-// Global error handler
-window.onerror = function (msg, url, lineNo, columnNo, error) {
-    console.error('Global error:', msg, url, lineNo, columnNo, error);
-    return false;
-};
-
-// Page visibility API for auto-save
-document.addEventListener('visibilitychange', function () {
-    if (!document.hidden && isAdminLoggedIn) {
-        loadAttendanceDataEnhanced();
-    }
-});
-
-// Replace the basic functions with enhanced versions
-const originalSave = saveAttendanceData;
-saveAttendanceData = async function () {
-    await saveAttendanceDataWithGitHub();
-    setupAutoSave();
-};
-
-const originalLoad = loadAttendanceData;
-loadAttendanceData = loadAttendanceDataEnhanced;
-
-const originalToggle = toggleAttendance;
-toggleAttendance = function (index, meal) {
-    originalToggle(index, meal);
-    setupAutoSave();
-    document.getElementById('saveBtn').disabled = false;
-};
-
-// Initialize enhanced features
-setupAutoSave();
-
-// Make functions globally accessible for inline event handlers
+// Global functions for inline handlers
 window.toggleAttendance = toggleAttendance;
 window.saveAttendanceData = saveAttendanceData;
 window.exportToCSV = exportToCSV;
 window.addStudent = addStudent;
-window.exportMonthlyReport = exportMonthlyReport;
+
+// Initialize
+setupAutoSave();
+console.log('🚀 CAES Students Mess - Fully Loaded!');
+console.log(`📅 Today: ${currentDate}`);
+console.log(`☁️ GitHub: ${repoOwner}/${repoName}`);
