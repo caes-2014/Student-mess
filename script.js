@@ -287,7 +287,7 @@ async function getFileSHA() {
 
 // Enhanced save function with GitHub integration
 async function saveAttendanceDataWithGitHub() {
-    if (!isAdminLoggedIn || !githubToken || githubToken === 'YOUR_GITHUB_TOKEN') {
+    if (!isAdminLoggedIn || !githubToken || githubToken === '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') {
         alert('Please configure GitHub token in script.js first!');
         return;
     }
@@ -326,7 +326,7 @@ async function saveAttendanceDataWithGitHub() {
 // Enhanced load function with GitHub + fallback
 async function loadAttendanceDataEnhanced() {
     try {
-        if (githubToken && githubToken !== 'YOUR_GITHUB_TOKEN') {
+        if (githubToken && githubToken !== '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') {
             const data = await loadFromGitHub();
             if (data && data.date === currentDate) {
                 studentsData = data.students || [];
